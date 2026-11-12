@@ -1,0 +1,20 @@
+# Python 3.14 development snapshot. The local project is installed separately.
+# Direct tools: static types, tests, lint/format, and the package build backend.
+mypy==2.4.1
+pytest==9.2.0
+ruff==0.17.5
+setuptools==84.2.1
+
+# Mypy helpers: syntax serialization, compiled runtime, typing, and path matching.
+ast_serialize==0.13.1
+librt==0.16.0
+mypy_extensions==1.2.0
+pathspec==1.1.1
+typing_extensions==4.16.0
+
+# Pytest helpers: configuration, version parsing, plugins, and terminal output.
+colorama==0.4.6; sys_platform == "win32"
+iniconfig==2.3.1
+packaging==26.3
+pluggy==1.7.0
+Pygments==2.21.0
