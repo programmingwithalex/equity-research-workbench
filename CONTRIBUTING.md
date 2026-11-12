@@ -8,11 +8,21 @@
 3. Add behavioral tests alongside application logic. Use focused fixtures for SEC
    metadata and mock HTTP responses; ordinary CI must not use live SEC or model
    APIs.
-4. Run the README quality commands and, once tests exist, `python -m pytest` using
+4. Run the README quality commands and `python -m pytest` using
    the project virtual environment. Inspect the diff and update documentation.
-5. Open a PR describing behavior, verification, and limitations. Alex reviews the
-   implementation and learning checkpoint before merge. Passing checks are
-   required; a separate approving reviewer is not required for this solo project.
+5. Open a PR describing behavior, verification, and limitations. Keep the learning
+   checkpoints for each implementation increment; passing CI alone does not prove
+   application correctness.
+6. Before every future merge, run the installed `$simplify-review-rebase` skill,
+   then verify required CI against the resulting head revision. The skill fixes
+   blocking and should-fix findings automatically within its edit boundary; minor
+   findings remain report-only unless a fix or acceptance is separately authorized.
+7. Alex authorizes automatic merging in this repository when the workflow has no
+   outstanding findings and required CI passes for the exact reviewed head. No
+   additional per-PR merge approval is needed. Unresolved findings of any severity,
+   unavailable workflow instructions, or failing/pending checks block automatic
+   merge; report them rather than bypassing the gate. A finding explicitly accepted
+   by Alex is resolved for this gate.
 
 The only direct-to-main exception is the initial README bootstrap commit. After
 the first `quality` check is registered, protect `main` against direct changes,

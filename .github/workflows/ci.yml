@@ -40,4 +40,5 @@ jobs:
         run: python -m ruff format --check .
       - name: Check types
         run: python -m mypy
-      # Add pytest when the first functional feature adds behavioral tests.
+      - name: Test filing selection
+        run: python -m pytest

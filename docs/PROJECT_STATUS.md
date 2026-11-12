@@ -2,23 +2,29 @@
 
 ## Current increment
 
-Repository and CI foundation for `programmingwithalex/equity-research-workbench`.
-The bootstrap README is on `main`; foundation changes are open for Alex's review
-in [PR #1](https://github.com/programmingwithalex/equity-research-workbench/pull/1)
-on `codex/bootstrap-quality`. The PR has not been merged.
+Historical filing-selection slice for `programmingwithalex/equity-research-workbench`.
+[PR #1](https://github.com/programmingwithalex/equity-research-workbench/pull/1)
+was approved and merged. The current increment is tracked in
+[PR #2](https://github.com/programmingwithalex/equity-research-workbench/pull/2)
+on `codex/sec-filing-discovery`; the PR is the source of truth for merge status.
 
 ## Implemented scope
 
 - Python 3.14 package skeleton using the `src/` layout.
 - Pinned development dependencies, Ruff lint/format configuration, strict mypy,
   and pytest configuration.
-- GitHub Actions `quality` job for lint, formatting, and typing on PRs and `main`.
+- Immutable `Filing` references and a pure `select_latest_filings` function.
+- Latest original 10-K/10-Q selection by company CIK and inclusive public filing
+  date, with deterministic same-day ties and preserved source metadata.
+- Nine synthetic behavioral tests; no external network calls or live SEC facts.
+- GitHub Actions `quality` job for lint, formatting, typing, and pytest on PRs and
+  `main`. Strict mypy now includes tests.
 - README, contribution instructions, changelog, and separate learning log.
 
-No application functions or tests exist yet. Pytest is configured but intentionally
-not run by CI until the first functional feature adds behavioral tests. Filing
-discovery, downloads, parsing, storage, embeddings, retrieval, model integration,
-UI, MCP, financial analysis, technical indicators, and deployment are not built.
+SEC metadata fetching/parsing, historical-file handling, the discovery CLI,
+downloads, storage, embeddings, retrieval, model integration, UI, MCP, financial
+analysis, technical indicators, and deployment are not built. The selector alone
+does not complete the planned SEC-discovery feature.
 
 ## Verification and repository controls
 
@@ -31,16 +37,21 @@ UI, MCP, financial analysis, technical indicators, and deployment are not built.
   including for administrators, with no force pushes or deletion. The GitHub API
   confirmed these settings. No separate approving reviewer is required.
 - No application behavior, retrieval quality, financial accuracy, or performance
-  claim has been verified.
+  claim was established by the foundation. The current selector's nine synthetic
+  cases passed locally; PR #2 shows remote CI for the final revision. No live filing,
+  retrieval-quality, financial-accuracy, or performance claim is established.
 - No version tag, release workflow, release, or deployment exists yet.
 
 ## Next increments after review
 
-1. Discover latest eligible 10-K/10-Q filings for TKO/APH at a research-date cutoff;
-   add deterministic SEC-response tests and enable pytest in CI.
+1. Parse/fetch SEC metadata and add the TKO/APH discovery CLI, reusing the tested
+   selector and adding mocked HTTP/metadata cases.
 2. Archive selected source documents and provenance/checksums; test repeat runs and
    prepare the `v0.1.0` release workflow.
 
-Keep the old company-policy repository untouched. Do not merge this feature PR
-before Alex's review and learning checkpoint. Do not commit generated downloads,
-personal financial information, credentials, or local environments.
+Keep the old company-policy repository untouched. The combined skill is installed
+as `$simplify-review-rebase`. Before every future PR merge, complete that workflow
+and verify required CI on the exact resulting head. Alex authorizes automatic
+merging when no findings remain outstanding and checks pass; otherwise keep the
+PR open and report the blocker. Do not commit generated downloads, personal
+financial information, credentials, or local environments.

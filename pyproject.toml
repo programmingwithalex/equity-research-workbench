@@ -40,7 +40,7 @@ docstring-code-format = true
 
 [tool.mypy]
 python_version = "3.14"
-files = ["src"]
+files = ["src", "tests"]
 strict = true
 warn_unreachable = true
 show_error_codes = true
