@@ -3,8 +3,9 @@
 ## Current increment
 
 Repository and CI foundation for `programmingwithalex/equity-research-workbench`.
-The bootstrap README is on `main`; foundation changes are being prepared on
-`codex/bootstrap-quality` for Alex's review.
+The bootstrap README is on `main`; foundation changes are open for Alex's review
+in [PR #1](https://github.com/programmingwithalex/equity-research-workbench/pull/1)
+on `codex/bootstrap-quality`. The PR has not been merged.
 
 ## Implemented scope
 
@@ -22,9 +23,13 @@ UI, MCP, financial analysis, technical indicators, and deployment are not built.
 ## Verification and repository controls
 
 - Local installation, dependency consistency, Ruff lint/format, strict mypy, and
-  package import checks passed. The first remote CI run is pending.
-- Main-branch protection will require the registered `quality` check and PRs,
-  including administrators, with no force pushes or deletion.
+  package import checks passed.
+- The first [Linux CI run](https://github.com/programmingwithalex/equity-research-workbench/actions/runs/43299339708)
+  passed dependency installation, editable installation, lint, formatting, and
+  typing. No application tests ran.
+- Main-branch protection requires PRs and the up-to-date `quality` check,
+  including for administrators, with no force pushes or deletion. The GitHub API
+  confirmed these settings. No separate approving reviewer is required.
 - No application behavior, retrieval quality, financial accuracy, or performance
   claim has been verified.
 - No version tag, release workflow, release, or deployment exists yet.
