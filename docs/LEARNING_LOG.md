@@ -47,8 +47,18 @@ logic under generic defensive handling.
   tests. No placeholder tests are added.
 - Local editable installation and dependency consistency checks passed. Ruff lint,
   Ruff formatting, and strict mypy passed; mypy checked the single package module.
-- The first GitHub Actions run is pending. Local checks do not substitute for a
-  clean Linux installation and CI run.
+- The first GitHub Actions Linux run passed clean dependency installation,
+  editable installation, lint, formatting, and typing. No application tests ran.
+- Verified main-branch protection through the GitHub API: require PRs and the
+  up-to-date `quality` check, apply protections to administrators, and disallow
+  force pushes and deletion. No separate approving reviewer is required.
+- Opened PR #1 for the foundation increment. It remains unmerged for review.
+
+### Debugging lessons
+
+- The GitHub connector returned HTTP 403 when creating the PR. The already
+  authenticated GitHub CLI could create it. Connector permissions and CLI
+  credentials are separate access paths; no new token was created.
 
 ### Remaining learning checkpoints
 
