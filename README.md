@@ -5,9 +5,13 @@ building evidence-backed research reports, starting with TKO and APH.
 
 ## Current implementation
 
-The project currently contains a Python package skeleton and development checks.
-Filing ingestion, retrieval, answer generation, technical analysis, and portfolio
-scenarios are not implemented yet. No investment recommendations are generated.
+The project contains a typed filing reference and a pure selector for the latest
+eligible original 10-K and 10-Q at a research-date cutoff. It operates on supplied
+records; SEC HTTP requests, metadata parsing, and a command-line interface are not
+implemented yet.
+
+Filing downloads, retrieval, answer generation, technical analysis, and portfolio
+scenarios are not implemented. No investment recommendations are generated.
 
 The first three increments are:
 
@@ -43,21 +47,49 @@ On macOS/Linux, use `.venv/bin/python` instead of `.venv\Scripts\python.exe`.
 .venv\Scripts\python.exe -m ruff check .
 .venv\Scripts\python.exe -m ruff format --check .
 .venv\Scripts\python.exe -m mypy
+.venv\Scripts\python.exe -m pytest
 ```
 
 Ruff checks lint, imports, docstring conventions, and formatting. Mypy checks
-annotated Python code using strict settings from `pyproject.toml`.
+annotated source and tests using strict settings from `pyproject.toml`. Pytest
+checks selection behavior using synthetic references with no network access.
+All four commands run in the required CI quality job. These tests do not evaluate
+live SEC data, retrieval relevance, generated answers, or financial accuracy.
 
-Pytest is installed and configured, but there are no application tests yet.
-The first functional feature must add behavioral tests and make pytest a required
-part of CI. Until then, CI reports lint, formatting, and type-check results only.
-These checks do not establish application correctness or financial accuracy.
+## Filing-selection behavior
+
+`equity_research.filings.select_latest_filings(records, cik=..., as_of=...)` returns
+the latest eligible original 10-K and 10-Q, in that order, omitting missing forms.
+Company identity uses the supplied canonical CIK rather than the display ticker.
+Eligibility uses public filing date, not the reporting-period end. For example,
+a June-period report published in August cannot be used for July research.
+
+The cutoff is inclusive and has day precision. Same-day ties use the accession
+number for reproducibility, not as evidence of intraday publication order.
+Amended forms such as 10-Q/A are excluded from this first selector. The function
+returns original records with source URLs and reporting periods intact and does
+not modify the input collection.
+
+To inspect the look-ahead case manually, read the synthetic fixture and expected
+accessions in `tests/test_filings.py`, then run:
+
+```powershell
+.venv\Scripts\python.exe -m pytest -v tests/test_filings.py
+```
+
+Dates, identities, and URLs in these fixtures are synthetic and are not current
+facts about TKO or APH.
 
 ## Development and releases
 
 Changes use feature-branch pull requests with required CI checks before merging
 into `main`. See [CONTRIBUTING.md](CONTRIBUTING.md) for the review workflow.
 The only direct-to-main exception is the initial README bootstrap commit.
+Every future PR merge must first complete the installed `$simplify-review-rebase`
+skill and pass CI on the resulting revision. Alex authorizes automatic merging
+in this repository when the workflow has no outstanding findings and required
+checks pass for that exact revision. Otherwise, keep the PR open and report what
+remains. See the contribution guide for the fix and merge policy.
 
 The first tagged release, `v0.1.0`, is planned after filing discovery and archival
 are implemented and reviewed. See [CHANGELOG.md](CHANGELOG.md). Release automation

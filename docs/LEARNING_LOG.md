@@ -67,3 +67,53 @@ logic under generic defensive handling.
   reporting period, and how a research-date cutoff prevents future-data leakage.
 - No retrieval, generated-answer, trading-signal, cost, or performance result has
   been measured by this repository.
+
+## 2026-11-12: Historical filing selection
+
+### Concepts and decisions
+
+- A reporting period describes the business interval; the filing date determines
+  eligibility for a historical research date. Filtering only on report-period end
+  can admit evidence that was not yet public.
+- SEC company identity uses CIK, while an accession identifies a submission. A
+  display ticker alone is not used as the selector's company identity.
+- Separate pure selection from future network fetching and SEC JSON parsing.
+  Supplied typed records make the date policy explicit and testable offline.
+- Return the latest original 10-K and 10-Q independently. This does not establish
+  that the selected reporting periods are suitable for numerical comparisons.
+- Use an inclusive day-level cutoff. Break same-day ties by accession solely for
+  deterministic results; intraday ordering is outside this slice.
+- Omit missing forms and exclude amendments. Preserve the supplied source and
+  date fields rather than inventing evidence or borrowing another company.
+
+### Implementation and verification
+
+- PR #1 was approved and merged. Work continues on `codex/sec-filing-discovery`.
+- Added the immutable `Filing` record and `select_latest_filings`; no HTTP client,
+  live metadata parser, CLI, or new dependency is introduced.
+- Nine synthetic pytest cases passed locally. Ruff lint and strict mypy passed;
+  mypy now includes tests. Ruff formatting initially requested line wrapping in
+  the test file; the formatter corrected it without changing behavior.
+- Added pytest to the existing required CI job. The latest remote result is
+  available on [PR #2](https://github.com/programmingwithalex/equity-research-workbench/pull/2).
+  Local lint, formatting, strict typing, and whitespace checks passed after the
+  formatting correction.
+- Alex requested that every future PR merge run `/simplify-review-rebase`. Its
+  exact definition was initially unavailable. The combined skill was subsequently
+  created as `$simplify-review-rebase` and run on PR #2. The first review found no
+  blocking or should-fix defects; M1 identified stale workflow-availability text.
+- Resolve M1 during merge preparation by updating the current README/status
+  statements. Preserve the historical account of the missing workflow here.
+- Alex authorizes automatic merges in this repository after the combined workflow
+  has no outstanding findings and required CI passes for the exact reviewed head.
+  A green check alone is insufficient, and unresolved minor findings also block
+  automatic merging unless Alex explicitly accepts them.
+
+### Remaining learning gaps and next slice
+
+- Date-selection behavior has automated tests; independent explanation by Alex
+  has not been checked through a completed comprehension answer.
+- Next: parse SEC metadata, handle historical submission files, fetch through an
+  explicit HTTP client, and provide the discovery CLI. These are not built yet.
+- Source snapshots and archive checksums are a later increment. This selector
+  cannot prove that a future live data source will never revise past metadata.
