@@ -32,12 +32,17 @@ Run the following from the repository root in PowerShell:
 python -m venv .venv
 .venv\Scripts\python.exe -m pip install -r requirements-dev.lock
 .venv\Scripts\python.exe -m pip install --no-deps --no-build-isolation --editable .
+.venv\Scripts\python.exe -m pre_commit install --install-hooks
 ```
 
 The first command creates an isolated environment. The second installs the pinned
 development dependencies. The third installs this package from `src/` in editable
 mode, reusing the installed build backend; source changes are then importable
 without reinstalling. Runtime application dependencies have not been added yet.
+The fourth command installs the local Git hook and its isolated Ruff environment.
+Before each commit, it formats staged Python files. If it changes a file, inspect
+the changes, stage them again, and retry the commit. Hook installation is needed
+in each clone; it is not enabled merely by cloning the repository.
 
 On macOS/Linux, use `.venv/bin/python` instead of `.venv\Scripts\python.exe`.
 
@@ -52,9 +57,28 @@ On macOS/Linux, use `.venv/bin/python` instead of `.venv\Scripts\python.exe`.
 
 Ruff checks lint, imports, docstring conventions, and formatting. Mypy checks
 annotated source and tests using strict settings from `pyproject.toml`. Pytest
-checks selection behavior using synthetic references with no network access.
-All four commands run in the required CI quality job. These tests do not evaluate
+checks selection behavior and CI formatting using local Git remotes and a stubbed
+GitHub CLI. The formatting tests require Bash, provided by Git for Windows on
+Windows and by the CI runner on Linux. The tests make no external requests.
+CI runs the formatter itself and requires a clean diff, plus lint, typing, and
+tests. These tests do not evaluate
 live SEC data, retrieval relevance, generated answers, or financial accuracy.
+
+### Automatic formatting in CI
+
+For same-repository PRs, except Dependabot, a separate job runs Ruff and commits
+formatting corrections back to the source branch using the workflow token. It
+uses a normal push, so it cannot overwrite a concurrent contributor push. Local
+pre-commit and CI use the same pinned Ruff version. Fork PRs, Dependabot PRs,
+`main` pushes, and manual runs only validate formatting without pushing changes.
+
+After a formatting push, CI explicitly dispatches a new run for the updated branch.
+The old revision's quality gate fails intentionally; only checks on the new head
+count. A new formatting commit also requires review of that head before merging.
+If dispatch fails after a successful push, inspect the branch and request checks
+with `gh workflow run ci.yml --ref <branch>`; the failed run does not become green.
+The write-enabled job is restricted to trusted same-repository PR code. It uses
+the short-lived GitHub Actions token, with no personal access token required.
 
 ## Filing-selection behavior
 

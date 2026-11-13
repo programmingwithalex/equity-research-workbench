@@ -2,11 +2,11 @@
 
 ## Current increment
 
-Historical filing-selection slice for `programmingwithalex/equity-research-workbench`.
+Ruff auto-formatting for `programmingwithalex/equity-research-workbench`.
 [PR #1](https://github.com/programmingwithalex/equity-research-workbench/pull/1)
-was approved and merged. The current increment is tracked in
+was approved and merged. Filing selection was merged in
 [PR #2](https://github.com/programmingwithalex/equity-research-workbench/pull/2)
-on `codex/sec-filing-discovery`; the PR is the source of truth for merge status.
+with nine passing tests. The current branch is `codex/ruff-autoformat`.
 
 ## Implemented scope
 
@@ -20,6 +20,11 @@ on `codex/sec-filing-discovery`; the PR is the source of truth for merge status.
 - GitHub Actions `quality` job for lint, formatting, typing, and pytest on PRs and
   `main`. Strict mypy now includes tests.
 - README, contribution instructions, changelog, and separate learning log.
+- Pinned Ruff formatting in a local pre-commit hook, installed separately per clone.
+- A same-repository PR formatter job that commits corrections with a normal push
+  and dispatches fresh CI. Fork, Dependabot, main, and manual runs are read-only.
+- Four local Git integration tests for no-op, commit/push/dispatch, concurrent
+  push rejection, and dispatch failure. GitHub calls are stubbed; Bash is required.
 
 SEC metadata fetching/parsing, historical-file handling, the discovery CLI,
 downloads, storage, embeddings, retrieval, model integration, UI, MCP, financial
@@ -27,6 +32,10 @@ analysis, technical indicators, and deployment are not built. The selector alone
 does not complete the planned SEC-discovery feature.
 
 ## Verification and repository controls
+
+- The formatter helper's four local cases and nine filing cases passed together.
+  Live GitHub token permissions and dispatch delivery require remote verification;
+  local helper tests do not establish those platform behaviors.
 
 - Local installation, dependency consistency, Ruff lint/format, strict mypy, and
   package import checks passed.

@@ -10,6 +10,8 @@
    APIs.
 4. Run the README quality commands and `python -m pytest` using
    the project virtual environment. Inspect the diff and update documentation.
+   Install the documented pre-commit hook in each clone. When formatting changes
+   a file, review and restage it before retrying the commit; do not bypass hooks.
 5. Open a PR describing behavior, verification, and limitations. Keep the learning
    checkpoints for each implementation increment; passing CI alone does not prove
    application correctness.
@@ -27,6 +29,12 @@
 The only direct-to-main exception is the initial README bootstrap commit. After
 the first `quality` check is registered, protect `main` against direct changes,
 force pushes, and deletion, including administrator bypass.
+
+CI can commit Ruff corrections to trusted same-repository PR branches. Any such
+commit invalidates review of the earlier head. Fetch and review the actual new
+head, then verify its required checks before applying the automatic merge gate.
+Fork and Dependabot PRs remain read-only. A failed concurrent push or workflow
+dispatch remains a failure; inspect the logs and branch rather than bypassing it.
 
 ## Code and documentation
 

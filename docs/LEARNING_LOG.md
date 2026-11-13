@@ -1,5 +1,39 @@
 # Learning log
 
+## 2026-11-13: Formatting before commit and in CI
+
+### Concepts and decisions
+
+- Alex requested automatic Ruff formatting in both pre-commit and CI, then chose
+  to have CI commit its formatting corrections back to PR branches.
+- Pre-commit installs a local Git hook. The hook formats staged Python files and
+  stops a commit if it changes them, allowing inspection and restaging.
+- CI uses the same pinned Ruff version. Only trusted same-repository PR runs get
+  a write-enabled job; fork, Dependabot, main, and manual runs stay read-only.
+- A normal push refuses concurrent remote changes. A CI-created formatting commit
+  requires fresh review and checks; an earlier green revision is insufficient.
+- The workflow token's push cannot be relied on to trigger checks. Explicit manual
+  workflow dispatch requests a new run; failure remains visible after a push.
+- Pre-commit is a development dependency, not an application runtime dependency.
+  Its pinned helpers support configuration, file identification, YAML, and isolated
+  hook environments. Direct Git hooks are an alternative with more setup to own.
+
+### Experiments and debugging
+
+- Four local integration tests exercise the real Bash helper with local bare Git
+  remotes and a guarded GitHub CLI stub. Together with filing tests, 13 cases pass.
+- An initial fixture left malformed source uncommitted. Formatting restored HEAD,
+  so no commit was appropriate. Committing the malformed fixture reproduced the
+  actual PR state and fixed the test setup without changing the helper.
+- Live GitHub write permissions and event dispatch remain separate from these
+  offline tests. No application behavior or performance claim follows from them.
+
+### Remaining learning gaps
+
+- Explain the distinction between a check that reports formatting drift and a
+  formatter that edits files, and why the changed head needs its own CI result.
+- SEC parsing, RAG, and model integration remain future increments.
+
 ## Working agreement
 
 Learn one concept and implement one small increment at a time. Explain concepts,

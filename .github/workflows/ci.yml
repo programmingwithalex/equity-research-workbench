@@ -15,11 +15,63 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  format:
+    name: format
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login != 'dependabot[bot]' &&
+      github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    outputs:
+      changed: ${{ steps.format.outputs.changed }}
+    steps:
+      - name: Check out the PR head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: true
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: requirements-dev.lock
+      - name: Install pinned development dependencies
+        run: python -m pip install -r requirements-dev.lock
+      - name: Format and publish corrections
+        id: format
+        shell: bash
+        env:
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/format-pr.sh
+
   quality:
     name: quality
+    needs: format
+    if: ${{ always() && !cancelled() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
+      - name: Require successful formatting for this revision
+        env:
+          FORMAT_RESULT: ${{ needs.format.result }}
+          FORMAT_CHANGED: ${{ needs.format.outputs.changed }}
+        run: |
+          case "$FORMAT_RESULT" in
+            success|skipped) ;;
+            *) echo "::error::Formatting failed; this revision cannot pass."; exit 1 ;;
+          esac
+          if [ "$FORMAT_CHANGED" = "true" ]; then
+            echo "::error::Formatting was committed back. Fresh CI was dispatched for the new head."
+            exit 1
+          fi
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -34,10 +86,12 @@ jobs:
         run: python -m pip install -r requirements-dev.lock
       - name: Install the project
         run: python -m pip install --no-deps --no-build-isolation --editable .
+      - name: Auto-format and require a clean checkout
+        run: |
+          python -m ruff format .
+          git diff --exit-code
       - name: Lint Python and docstrings
         run: python -m ruff check .
-      - name: Check formatting
-        run: python -m ruff format --check .
       - name: Check types
         run: python -m mypy
       - name: Test filing selection

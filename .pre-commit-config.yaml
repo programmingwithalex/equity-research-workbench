@@ -1,0 +1,6 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: ef6cf06c079dd6b299dfc720b0f14400c9d168e1 # v0.17.5; match the pinned CI Ruff version.
+    hooks:
+      - id: ruff-format
+        types_or: [python, pyi]
