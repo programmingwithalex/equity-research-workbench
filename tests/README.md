@@ -21,5 +21,13 @@ They require Bash (Git for Windows provides it) and the installed project Ruff.
 When the SEC client is added, use recorded public-source response fixtures and
 mocked HTTP calls. Ordinary CI must not contact SEC or paid model APIs.
 
+`test_sec_metadata.py` uses synthetic SEC-shaped columns to verify record alignment,
+dates and unknown report periods, preservation of forms and input, source URL
+construction/encoding, empty batches, and whole-batch rejection when a required
+column is shorter or longer than its siblings. A parser-to-selector integration case
+shows that an eligible historical filing can be absent from a recent batch and
+present when a supplied older batch is included. It does not fetch history or
+establish that a particular live response is complete.
+
 Keep tests focused on observable behavior. Explain the failure or requirement a
 test protects; avoid tests that merely repeat constants or implementation details.

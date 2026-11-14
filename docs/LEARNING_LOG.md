@@ -1,5 +1,50 @@
 # Learning log
 
+## 2026-11-13: SEC metadata parser
+
+### Concepts and decisions
+
+- SEC submissions metadata is a document catalog, not the documents themselves.
+  Parallel arrays describe filings by shared position. The parser assembles those
+  values into existing immutable `Filing` records for deterministic selection.
+- Keep parsing separate from HTTP fetching so input conversion can be inspected
+  and tested offline. Both recent and historical batches use the same column
+  parser; the caller supplies company identity.
+- Preserve blank reporting dates as unknown, keep every form during parsing, and
+  leave eligibility decisions to the selector. Build source references from CIK,
+  accession, and the document name; encode filename punctuation.
+- Alex correctly explained that discovery must fetch relevant additional history
+  before claiming no eligible filing exists, then authorized the parser increment.
+- No dependency, model call, embedding, or HTTP client is introduced in this patch.
+- Alex chose to reject the entire batch when required SEC columns have unequal
+  lengths, rather than return partial evidence. The parser's strict pairing raises
+  before returning any result, even if earlier rows were locally assembled.
+
+### Experiments and debugging
+
+- Inspected a public APH submissions response before implementation. It contained
+  1,000 recent entries and one historical-file reference; that observation is a
+  snapshot, not a guarantee about future responses.
+- PowerShell initially rejected the contact email in a raw User-Agent header.
+  Put contact information in a parenthesized comment in a product/version header;
+  the read-only request then succeeded. Stop on the first command error to avoid
+  confusing follow-on null errors.
+- Parser tests use synthetic SEC-shaped inputs, with a recent-plus-history example
+  feeding the existing selector. They do not establish live history completeness.
+- Five initial parser tests and the full 18-case suite passed locally. After Alex's
+  prediction, added shorter/longer-column cases to verify whole-batch rejection.
+- Both rejection cases and all 20 tests passed. Ruff lint/format, strict mypy
+  (six files), and whitespace checks passed; no external services were called by
+  the tests. These checks establish the supplied-input contracts, not live SEC
+  availability or completeness of fetched company history.
+
+### Remaining learning gaps
+
+- Implement HTTP timeouts, declared identity, rate control, and historical-file
+  coverage in a later increment; none is supplied by the parser.
+- General JSON schema validation and live SEC integration are not verified by
+  typed Python inputs or the synthetic tests.
+
 ## 2026-11-13: Formatting before commit and in CI
 
 ### Concepts and decisions

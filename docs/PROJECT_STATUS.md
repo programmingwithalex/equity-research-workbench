@@ -2,11 +2,13 @@
 
 ## Current increment
 
-Ruff auto-formatting for `programmingwithalex/equity-research-workbench`.
+SEC metadata parsing for `programmingwithalex/equity-research-workbench`.
 [PR #1](https://github.com/programmingwithalex/equity-research-workbench/pull/1)
 was approved and merged. Filing selection was merged in
 [PR #2](https://github.com/programmingwithalex/equity-research-workbench/pull/2)
-with nine passing tests. The current branch is `codex/ruff-autoformat`.
+with nine passing tests. Ruff automation was merged in
+[PR #3](https://github.com/programmingwithalex/equity-research-workbench/pull/3).
+The parser increment is on `sec-metadata-parser`.
 
 ## Implemented scope
 
@@ -25,13 +27,22 @@ with nine passing tests. The current branch is `codex/ruff-autoformat`.
   and dispatches fresh CI. Fork, Dependabot, main, and manual runs are read-only.
 - Four local Git integration tests for no-op, commit/push/dispatch, concurrent
   push rejection, and dispatch failure. GitHub calls are stubbed; Bash is required.
+- Pure `parse_filings` conversion for supplied recent or historical SEC columns.
+  It preserves input order, all forms, dates, and citation references, with unknown
+  report periods represented as `None`. No new dependency is introduced.
+- Synthetic parser tests and a parser-to-selector historical-coverage case.
 
-SEC metadata fetching/parsing, historical-file handling, the discovery CLI,
+SEC metadata fetching, historical-file discovery, the discovery CLI,
 downloads, storage, embeddings, retrieval, model integration, UI, MCP, financial
 analysis, technical indicators, and deployment are not built. The selector alone
 does not complete the planned SEC-discovery feature.
 
 ## Verification and repository controls
+
+- Seven parser cases and the full 20-test suite passed locally, including shorter
+  and longer-column whole-batch rejection, as Alex requested. Ruff lint/format,
+  strict mypy (six files), and whitespace checks passed. The feature PR and its
+  exact-head required CI are the source of truth for publication state.
 
 - The formatter helper's four local cases and nine filing cases passed together.
   Live GitHub token permissions and dispatch delivery require remote verification;
@@ -53,8 +64,9 @@ does not complete the planned SEC-discovery feature.
 
 ## Next increments after review
 
-1. Parse/fetch SEC metadata and add the TKO/APH discovery CLI, reusing the tested
-   selector and adding mocked HTTP/metadata cases.
+1. Fetch SEC metadata and relevant historical files, then add the TKO/APH discovery
+   CLI, reusing the parser/selector and adding mocked HTTP cases. Absence claims
+   require coverage of all relevant historical files, as Alex confirmed.
 2. Archive selected source documents and provenance/checksums; test repeat runs and
    prepare the `v0.1.0` release workflow.
 

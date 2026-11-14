@@ -6,9 +6,9 @@ building evidence-backed research reports, starting with TKO and APH.
 ## Current implementation
 
 The project contains a typed filing reference and a pure selector for the latest
-eligible original 10-K and 10-Q at a research-date cutoff. It operates on supplied
-records; SEC HTTP requests, metadata parsing, and a command-line interface are not
-implemented yet.
+eligible original 10-K and 10-Q at a research-date cutoff. A pure SEC metadata
+parser converts supplied column arrays into those references. SEC HTTP requests,
+historical-file discovery, and a command-line interface are not implemented yet.
 
 Filing downloads, retrieval, answer generation, technical analysis, and portfolio
 scenarios are not implemented. No investment recommendations are generated.
@@ -103,6 +103,32 @@ accessions in `tests/test_filings.py`, then run:
 
 Dates, identities, and URLs in these fixtures are synthetic and are not current
 facts about TKO or APH.
+
+## SEC metadata parsing
+
+`equity_research.sec_metadata.parse_filings(columns, cik=..., ticker=...)` accepts
+the `filings.recent` columns from a submissions response or equivalent top-level
+columns from a historical response. Company identity is supplied explicitly so
+the same function can parse either batch. It pairs fields by array position,
+converts ISO dates, preserves blank report dates as `None`, and constructs SEC
+archive source URLs. It preserves every form; the selector handles eligibility.
+Required columns are `accessionNumber`, `form`, `filingDate`, `reportDate`, and
+`primaryDocument`. The parser expects SEC-shaped string arrays; it does not perform
+general JSON schema validation. Required columns must have equal lengths.
+
+Fetching is separate from parsing. An empty batch does not prove that no eligible
+filing exists across a company's history. Discovery must inspect relevant older
+files before making that claim. See the [SEC API documentation](https://www.sec.gov/search-filings/edgar-application-programming-interfaces).
+
+To inspect the historical-coverage example, run:
+
+```powershell
+.venv\Scripts\python.exe -m pytest -v tests/test_sec_metadata.py -k recent_and_historical
+```
+
+The recent-only synthetic input has no eligible annual report at the cutoff;
+adding the supplied historical batch finds it. This verifies parsing and selection
+together, without implementing or exercising HTTP fetching.
 
 ## Development and releases
 

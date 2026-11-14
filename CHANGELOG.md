@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Parse supplied SEC recent or historical filing columns into typed references,
+  preserving source URLs and unknown reporting periods. Add offline parser and
+  selector-integration coverage; HTTP fetching remains a later increment.
+
 - Auto-format staged Python with a pinned Ruff pre-commit hook. For trusted
   same-repository PRs, commit CI formatting corrections back and dispatch checks
   for the new head; keep other CI paths read-only.
