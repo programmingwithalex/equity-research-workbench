@@ -8,7 +8,8 @@ was approved and merged. Filing selection was merged in
 [PR #2](https://github.com/programmingwithalex/equity-research-workbench/pull/2)
 with nine passing tests. Ruff automation was merged in
 [PR #3](https://github.com/programmingwithalex/equity-research-workbench/pull/3).
-The parser increment is on `sec-metadata-parser`.
+The parser was merged into `main` in
+[PR #4](https://github.com/programmingwithalex/equity-research-workbench/pull/4).
 
 ## Implemented scope
 
