@@ -9,7 +9,7 @@ description = "Evidence-grounded company research and filing comparisons"
 readme = "README.md"
 requires-python = ">=3.14,<3.15"
 authors = [{ name = "programmingwithalex" }]
-dependencies = []
+dependencies = ["httpx==0.28.1"]
 
 [project.optional-dependencies]
 dev = [

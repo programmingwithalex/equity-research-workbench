@@ -2,9 +2,15 @@
 
 ## Unreleased
 
+- Add an HTTPX-backed SEC client for recent and advertised historical metadata,
+  sharing identity, timeout, pacing, and destination policy. Reuse the parser and
+  selector; fail the whole fetch when any required batch is unavailable or invalid.
+- Pin runtime dependencies separately from development tools, update CI cache
+  inputs, and add offline HTTPX transport tests with shared SEC fixtures.
+
 - Parse supplied SEC recent or historical filing columns into typed references,
   preserving source URLs and unknown reporting periods. Add offline parser and
-  selector-integration coverage; HTTP fetching remains a later increment.
+  selector-integration coverage.
 
 - Auto-format staged Python with a pinned Ruff pre-commit hook. For trusted
   same-repository PRs, commit CI formatting corrections back and dispatch checks

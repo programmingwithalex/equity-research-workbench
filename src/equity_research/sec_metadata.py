@@ -2,9 +2,18 @@
 
 from collections.abc import Mapping, Sequence
 from datetime import date
+from typing import Final
 from urllib.parse import quote
 
 from equity_research.filings import Filing
+
+REQUIRED_COLUMNS: Final = (
+    "accessionNumber",
+    "form",
+    "filingDate",
+    "reportDate",
+    "primaryDocument",
+)
 
 
 def parse_filings(
@@ -34,14 +43,7 @@ def parse_filings(
     """
     # SEC arrays are parallel: the same position in every column is one filing.
     # Strict pairing prevents a shorter column from silently dropping records.
-    rows = zip(
-        columns["accessionNumber"],
-        columns["form"],
-        columns["filingDate"],
-        columns["reportDate"],
-        columns["primaryDocument"],
-        strict=True,
-    )
+    rows = zip(*(columns[name] for name in REQUIRED_COLUMNS), strict=True)
     filings: list[Filing] = []
     for accession, form, filed, reported, primary_document in rows:
         # SEC archive directories omit CIK padding and accession-number dashes.

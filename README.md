@@ -7,8 +7,9 @@ building evidence-backed research reports, starting with TKO and APH.
 
 The project contains a typed filing reference and a pure selector for the latest
 eligible original 10-K and 10-Q at a research-date cutoff. A pure SEC metadata
-parser converts supplied column arrays into those references. SEC HTTP requests,
-historical-file discovery, and a command-line interface are not implemented yet.
+parser converts column arrays into those references. A pooled HTTPX-based SEC
+client fetches company metadata and every historical metadata file it lists.
+A command-line interface is not implemented yet.
 
 Filing downloads, retrieval, answer generation, technical analysis, and portfolio
 scenarios are not implemented. No investment recommendations are generated.
@@ -38,7 +39,8 @@ python -m venv .venv
 The first command creates an isolated environment. The second installs the pinned
 development dependencies. The third installs this package from `src/` in editable
 mode, reusing the installed build backend; source changes are then importable
-without reinstalling. Runtime application dependencies have not been added yet.
+without reinstalling. The development snapshot includes `requirements.lock`, which
+pins HTTPX and its runtime dependencies. CI caches track both lockfiles.
 The fourth command installs the local Git hook and its isolated Ruff environment.
 Before each commit, it formats staged Python files. If it changes a file, inspect
 the changes, stage them again, and retry the commit. Hook installation is needed
@@ -53,15 +55,17 @@ On macOS/Linux, use `.venv/bin/python` instead of `.venv\Scripts\python.exe`.
 .venv\Scripts\python.exe -m ruff format --check .
 .venv\Scripts\python.exe -m mypy
 .venv\Scripts\python.exe -m pytest
+.venv\Scripts\python.exe -m pip check
 ```
 
 Ruff checks lint, imports, docstring conventions, and formatting. Mypy checks
 annotated source and tests using strict settings from `pyproject.toml`. Pytest
-checks selection behavior and CI formatting using local Git remotes and a stubbed
-GitHub CLI. The formatting tests require Bash, provided by Git for Windows on
+checks parsing, SEC request policy/history traversal, selection, and CI formatting.
+HTTPX MockTransport supplies SEC responses in process; CI-format tests use local
+Git remotes and a stubbed GitHub CLI. The formatting tests require Bash, provided by Git for Windows on
 Windows and by the CI runner on Linux. The tests make no external requests.
-CI runs the formatter itself and requires a clean diff, plus lint, typing, and
-tests. These tests do not evaluate
+CI runs the formatter itself and requires a clean diff, plus lint, typing, tests,
+and dependency consistency checks. These tests do not evaluate
 live SEC data, retrieval relevance, generated answers, or financial accuracy.
 
 ### Automatic formatting in CI
@@ -129,6 +133,57 @@ To inspect the historical-coverage example, run:
 The recent-only synthetic input has no eligible annual report at the cutoff;
 adding the supplied historical batch finds it. This verifies parsing and selection
 together, without implementing or exercising HTTP fetching.
+
+## Fetching SEC metadata
+
+`SecClient` shares one request policy across company and historical metadata
+requests. The caller owns a pooled `httpx.Client` and closes it with a context
+manager. The SEC client validates company identity, constrains historical filenames
+to that company, rejects redirects, checks required JSON column types, and reuses
+the existing parser. The selector remains responsible for form/date eligibility.
+
+The following example requires `SEC_USER_AGENT` in your environment, set to your
+application name and contact information as requested by the [SEC](https://www.sec.gov/search-filings/edgar-search-assistance/accessing-edgar-data).
+It makes live requests; ordinary tests never do.
+
+```python
+import os
+from datetime import date
+
+import httpx
+
+from equity_research.filings import select_latest_filings
+from equity_research.sec_client import SecClient
+
+limits = httpx.Limits(max_connections=1, max_keepalive_connections=1)
+with httpx.Client(limits=limits) as http:
+    sec = SecClient(http, user_agent=os.environ["SEC_USER_AGENT"])
+    records = sec.fetch_filings(cik="0000820313", ticker="APH")
+
+selected = select_latest_filings(records, cik="0000820313", as_of=date(2026, 11, 15))
+for filing in selected:
+    print(filing.form, filing.filing_date, filing.source_url)
+```
+
+Recent records and all advertised historical batches are combined before return.
+Any required HTTP, timeout, JSON, identity, or parsing failure aborts the operation;
+an incomplete list is never returned as a successful fetch. There are no automatic
+retries in this increment. A 429 or 503 remains an explicit caller-visible error.
+HTTPX's configured 10-second timeout applies to network inactivity, not the duration
+of the whole ingestion job. See [HTTPX timeouts](https://www.python-httpx.org/advanced/timeouts/).
+
+The default 0.2-second request-start spacing is local to a shared `SecClient`
+instance, including when a request fails. Multiple workers require a shared SEC
+rate budget before parallel ingestion. For a larger user base, background ingestion
+should refresh shared stored evidence; user requests should query that evidence.
+This client does not implement caching, distributed rate coordination, or measured
+capacity for millions of users. The index and history files are fetched separately,
+so their combined contents do not establish an atomic historical SEC snapshot.
+
+On November 15, 2026, a manual APH smoke check fetched its index and one listed
+historical file, producing 2,017 references. That is one observed response set,
+not a permanent record-count or availability guarantee. Report-document downloads
+and archival are separate future increments.
 
 ## Development and releases
 

@@ -18,8 +18,7 @@ dispatch request, and a path check refuses to run against the real GitHub CLI.
 These tests validate helper behavior, not live GitHub permissions or event delivery.
 They require Bash (Git for Windows provides it) and the installed project Ruff.
 
-When the SEC client is added, use recorded public-source response fixtures and
-mocked HTTP calls. Ordinary CI must not contact SEC or paid model APIs.
+Ordinary CI must not contact SEC or paid model APIs.
 
 `test_sec_metadata.py` uses synthetic SEC-shaped columns to verify record alignment,
 dates and unknown report periods, preservation of forms and input, source URL
@@ -28,6 +27,19 @@ column is shorter or longer than its siblings. A parser-to-selector integration 
 shows that an eligible historical filing can be absent from a recent batch and
 present when a supplied older batch is included. It does not fetch history or
 establish that a particular live response is complete.
+
+`conftest.py` supplies shared synthetic SEC columns to parser and client tests,
+keeping one fixture definition while retaining independent expected-record checks.
+`test_sec_client.py` uses a real HTTPX client with MockTransport, so every request
+is answered in process. A module-local fake clock checks pacing without sleeping.
+The cases cover every advertised history file, empty history, request identity
+and timeout settings, 429/503 and timeout propagation, wrong-company evidence,
+invalid destinations, redirect refusal, wire column types, and invalid pacing or
+timeout settings. Failures must not return partial evidence or trigger hidden retries.
+
+Mocked timeout exceptions verify application propagation; they do not measure
+real network timeout enforcement, throughput, or service reliability. Manual live
+checks are documented separately and do not become CI dependencies.
 
 Keep tests focused on observable behavior. Explain the failure or requirement a
 test protects; avoid tests that merely repeat constants or implementation details.
