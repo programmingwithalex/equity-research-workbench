@@ -1,0 +1,10 @@
+# Python 3.14 runtime dependency snapshot. Install the local project separately.
+httpx==0.28.1
+
+# HTTP connections/protocol, concurrency support, TLS roots, and domain names.
+httpcore==1.0.9
+h11==0.16.0
+anyio==4.16.0
+certifi==2026.10.23
+idna==3.20
+typing_extensions==4.16.0

@@ -1,5 +1,54 @@
 # Learning log
 
+## 2026-11-15: HTTPX SEC metadata ingestion
+
+### Concepts and decisions
+
+- Alex chose HTTPX and requested a global preference for modern, production-suitable
+  libraries. A reasonable dependency must not be rejected solely to avoid adding
+  it. Library selection does not establish measured capacity for millions of users.
+- A connection pool reuses underlying connections. A transport performs the I/O;
+  HTTPX MockTransport replaces that boundary with in-process test responses.
+- The HTTPX client owns pooled connections and is closed by its caller's context
+  manager. SecClient owns the SEC request policy and complete-history traversal.
+- One request path serves both recent and historical files. The existing parser,
+  Filing model, and selector remain shared; SEC column names and synthetic test
+  data were extracted because they now have concrete second consumers.
+- Type hints do not validate decoded JSON. The network boundary checks object and
+  required column types, then the existing parser checks lengths and dates.
+- HTTPX timeouts bound network inactivity, not total ingestion duration. Pacing
+  is local to one shared instance; many workers need shared rate coordination.
+- Millions of users should read shared stored evidence refreshed by background
+  ingestion, rather than each user creating new SEC downloads. Those storage,
+  caching, and worker components remain future work, not a demonstrated capacity.
+
+### Security discussion and experiments
+
+- Alex asked for a recommendation about redirects. We discussed how an allowed
+  initial URL can redirect to an unchecked destination, bypassing origin checks
+  and creating an SSRF path. This client refuses redirects; the test checks that
+  only the original request is issued even when its HTTPX client allows redirects.
+- Installed stable HTTPX 0.28.1 with pinned httpcore/h11, anyio, certifi, idna, and
+  typing_extensions. These supply connection/protocol handling, concurrency support,
+  TLS roots, domain names, and typing support. Pip's dependency consistency check passed.
+- Eighteen client cases passed offline with mocked responses and virtual pacing.
+  They include 429/503, timeout, incomplete history, invalid identity/destination,
+  wire types, redirect refusal, and invalid timing configuration. No retries or
+  partial-result fallback are hidden behind these failures.
+- A separate live APH run requested its index and one history file and returned
+  2,017 references. It selected original 10-K and 10-Q references at the configured
+  cutoff. Counts are an observed November 15 snapshot; no throughput, financial
+  accuracy, or future availability claim follows from that run.
+
+### Remaining learning gaps
+
+- Alex confirmed historical coverage and whole-batch rejection earlier. Redirect
+  policy was explained after a request for guidance; an independent explanation
+  of SSRF, pooling, and timeout semantics has not been checked yet.
+- Bounded retries/Retry-After, shared rate budgets, caching, tracing, job deadlines,
+  and reproducible archived source snapshots remain operational topics to implement
+  and measure. No LLM generation or RAG retrieval is part of this increment.
+
 ## 2026-11-13: SEC metadata parser
 
 ### Concepts and decisions

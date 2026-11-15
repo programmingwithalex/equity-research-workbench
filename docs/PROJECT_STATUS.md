@@ -2,7 +2,7 @@
 
 ## Current increment
 
-SEC metadata parsing for `programmingwithalex/equity-research-workbench`.
+SEC metadata fetching for `programmingwithalex/equity-research-workbench`.
 [PR #1](https://github.com/programmingwithalex/equity-research-workbench/pull/1)
 was approved and merged. Filing selection was merged in
 [PR #2](https://github.com/programmingwithalex/equity-research-workbench/pull/2)
@@ -32,13 +32,30 @@ The parser was merged into `main` in
   It preserves input order, all forms, dates, and citation references, with unknown
   report periods represented as `None`. No new dependency is introduced.
 - Synthetic parser tests and a parser-to-selector historical-coverage case.
+- HTTPX-backed `SecClient`: fetch the company index and every listed history file,
+  check company identity and wire column types, then reuse `parse_filings`.
+- One shared request policy for declared identity, inactivity timeouts, local
+  pacing, fixed SEC destinations, and redirect refusal. HTTPX client ownership
+  and cleanup belong to the caller. Required-batch failures return no partial list.
+- Shared SEC column names and test fixtures, plus separate runtime/development
+  lockfiles included together in CI cache keys. HTTPX is the direct runtime dependency.
 
-SEC metadata fetching, historical-file discovery, the discovery CLI,
-downloads, storage, embeddings, retrieval, model integration, UI, MCP, financial
-analysis, technical indicators, and deployment are not built. The selector alone
-does not complete the planned SEC-discovery feature.
+The discovery CLI, report downloads, archival storage, embeddings, retrieval,
+model integration, UI, MCP, financial analysis, technical indicators, and deployment
+are not built. Metadata fetching alone does not complete the planned CLI or archive.
 
 ## Verification and repository controls
+
+- Eighteen offline HTTPX client cases passed, covering history completeness,
+  HTTP/timeout failures, identity/destination/redirect checks, pacing, and wire types.
+  Ruff lint and strict mypy passed after the client and shared-fixture changes.
+- A manual November 15, 2026 APH check used the real client to fetch its company
+  index and one listed historical file, producing 2,017 references. This establishes
+  one successful live integration check, not ongoing availability or completeness
+  of all possible SEC history. No reports or personal data were written to Git.
+- Pacing is per shared client instance; multi-worker ingestion needs a shared SEC
+  rate budget. Retries, caching, ingestion jobs, and whole-job deadlines remain
+  separate operational work. No user-capacity or performance benchmark is claimed.
 
 - Seven parser cases and the full 20-test suite passed locally, including shorter
   and longer-column whole-batch rejection, as Alex requested. Ruff lint/format,
@@ -65,9 +82,8 @@ does not complete the planned SEC-discovery feature.
 
 ## Next increments after review
 
-1. Fetch SEC metadata and relevant historical files, then add the TKO/APH discovery
-   CLI, reusing the parser/selector and adding mocked HTTP cases. Absence claims
-   require coverage of all relevant historical files, as Alex confirmed.
+1. Add the TKO/APH discovery CLI using the client, parser, and selector. Keep
+   completeness/failure behavior explicit and add command-level tests.
 2. Archive selected source documents and provenance/checksums; test repeat runs and
    prepare the `v0.1.0` release workflow.
 
